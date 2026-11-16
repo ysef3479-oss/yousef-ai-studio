@@ -56,4 +56,4 @@ http.createServer(async(req,res)=>{
       }catch(e){chatHistory.pop();res.writeHead(500,{'Content-Type':'application/json;charset=utf-8'});res.end(JSON.stringify({error:e.message}))}
     });
   }
-}).listen(process.env.PORT || 5000,()=>console.log('Studio AI running on 5000'));
+}).listen(process.env.PORT || 5000, "0.0.0.0")=>console.log('Studio AI running on 5000'));
