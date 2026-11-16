@@ -2,7 +2,7 @@ require('dotenv').config();
 const http = require('http');
 const fs = require('fs');
 const { GoogleGenAI } = require('@google/genai');
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+process.on("uncaughtException",console.error);const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 let chatHistory = [];
 
 const manifest = JSON.stringify({
