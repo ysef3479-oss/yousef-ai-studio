@@ -6,16 +6,21 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 let chatHistory = [];
 
 const manifest = JSON.stringify({
+  id: "/",
   name: "استوديو يوسف AI",
   short_name: "يوسف AI",
   start_url: "/",
+  scope: "/",
   display: "standalone",
   background_color: "#090d16",
   theme_color: "#111827",
-  icons: [{ src: "/icon.png", sizes: "512x512", type: "image/png" }]
+  icons: [
+    { src: "/icon.png", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+  ]
 });
 
-const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><link rel="manifest" href="/manifest.json"><title>استوديو يوسف AI</title>
+const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="theme-color" content="#111827"><link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.png"><title>استوديو يوسف AI</title>
 <style>*{box-sizing:border-box}body{font-family:sans-serif;background:#090d16;color:#f1f5f9;margin:0;display:flex;flex-direction:column;height:100dvh}header{background:#111827;padding:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1f2937}header span{font-weight:bold;color:#38bdf8}.btn-s{background:#1f2937;color:#94a3b8;border:1px solid #374151;padding:5px 10px;border-radius:8px}#chat{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:12px}.msg{max-width:88%;padding:12px;border-radius:12px;line-height:1.6;word-wrap:break-word}.user{background:#2563eb;align-self:flex-start}.bot{background:#111827;align-self:flex-end;border:1px solid #1f2937}.gen-img{width:100%;max-width:300px;border-radius:10px;margin-top:8px;display:block}.dl-btn{display:inline-block;margin-top:6px;background:#059669;color:#fff;text-decoration:none;padding:6px 12px;border-radius:6px;font-size:12px}.vbox{position:relative;width:100%;max-width:300px;height:190px;border-radius:10px;overflow:hidden;margin-top:8px;border:2px solid #38bdf8}.vbox img{width:100%;height:100%;object-fit:cover;transition:transform 3s}.vsub{position:absolute;bottom:0;width:100%;background:rgba(0,0,0,.75);padding:6px;font-size:12px;text-align:center}#prev{background:#1e293b;padding:6px 12px;font-size:12px;color:#38bdf8;display:none;justify-content:space-between}form{display:flex;padding:8px;background:#111827;gap:6px}input[type=text]{flex:1;padding:10px;border-radius:8px;border:1px solid #374151;background:#090d16;color:#fff;min-width:0}.ibtn{background:#1f2937;color:#38bdf8;border:1px solid #374151;padding:8px 10px;border-radius:8px}.sbtn{padding:10px 14px;background:#38bdf8;color:#090d16;border:none;border-radius:8px;font-weight:bold}</style></head>
 <body><header><span>🎬 استوديو يوسف AI</span><button class="btn-s" onclick="clr()">مسح 🗑️</button></header>
 <div id="chat"><div class="msg bot">أهلاً يا يوسف! اطلب <b>"اصنع صورة لـ..."</b> 🎨 أو <b>"اصنع فيديو عن..."</b> 🎬 أو أرفق ملفاً 📎!</div></div>
@@ -24,7 +29,7 @@ const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-
 <script>
 if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js");
 let af=null;
-function hf(i){const f=i.files;if(!f)return;const r=new FileReader();r.onload=()=>{af={data:r.result.split(',')[1],mimeType:f.type,name:f.name};fn.textContent='📎 '+f.name;prev.style.display='flex'};r.readAsDataURL(f)}
+function hf(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{af={data:r.result.split(',')[1],mimeType:f.type,name:f.name};fn.textContent='📎 '+f.name;prev.style.display='flex'};r.readAsDataURL(f)}
 function cf(){af=null;fi.value='';prev.style.display='none'}
 function fmt(t){
   let e=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -40,7 +45,7 @@ async function send(e){e.preventDefault();const t=p.value.trim();if(!t&&!af)retu
 
 http.createServer(async(req,res)=>{
   if(req.method==='GET'&&req.url==='/'){res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});res.end(html)}
-  else if(req.method==='GET'&&req.url==='/manifest.json'){res.writeHead(200,{'Content-Type':'application/json'});res.end(manifest)}
+  else if(req.method==='GET'&&req.url==='/manifest.json'){res.writeHead(200,{'Content-Type':'application/manifest+json;charset=utf-8'});res.end(manifest)}
   else if(req.method==='GET'&&req.url==='/icon.png'){res.writeHead(200,{'Content-Type':'image/png'});res.end(fs.readFileSync('icon.png'))}
   else if(req.method==='GET'&&req.url==='/sw.js'){res.writeHead(200,{'Content-Type':'application/javascript'});res.end(fs.readFileSync('sw.js'))}
   else if(req.method==='POST'&&req.url==='/clear'){chatHistory=[];res.writeHead(200);res.end('ok')}
@@ -50,10 +55,10 @@ http.createServer(async(req,res)=>{
         const{prompt,file}=JSON.parse(b);const parts=[{text:prompt}];
         if(file)parts.push({inlineData:{data:file.data,mimeType:file.mimeType}});
         chatHistory.push({role:'user',parts});
-        const r=await ai.models.generateContent({model:'gemini-3.8-flash',contents:chatHistory,config:{systemInstruction:'أنت استوديو ذكاء اصطناعي ليوسف. أجب بالعربية دائماً. إذا طلب صورة اكتب: [IMAGE: detailed english prompt] وإذا طلب فيديو اكتب 3 مشاهد إنجليزية ونص عربي هكذا: [VIDEO: scene 1 english; scene 2 english; scene 3 english | نص القصة بالعربية]'}});
+        const r=await ai.models.generateContent({model:'gemini-2.5-flash',contents:chatHistory,config:{systemInstruction:'أنت استوديو ذكاء اصطناعي ليوسف. أجب بالعربية دائماً. إذا طلب صورة اكتب: [IMAGE: detailed english prompt] وإذا طلب فيديو اكتب 3 مشاهد إنجليزية ونص عربي هكذا: [VIDEO: scene 1 english; scene 2 english; scene 3 english | نص القصة بالعربية]'}});
         chatHistory.push({role:'model',parts:[{text:r.text}]});
         res.writeHead(200,{'Content-Type':'application/json;charset=utf-8'});res.end(JSON.stringify({reply:r.text}));
       }catch(e){chatHistory.pop();res.writeHead(500,{'Content-Type':'application/json;charset=utf-8'});res.end(JSON.stringify({error:e.message}))}
     });
   }
-}).listen(process.env.PORT || 5000, "0.0.0.0")=>console.log('Studio AI running on 5000'));
+}).listen(process.env.PORT || 5000, '0.0.0.0', () => console.log('Studio AI running'));
