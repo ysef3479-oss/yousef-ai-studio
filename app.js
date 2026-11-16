@@ -41,8 +41,8 @@ async function send(e){e.preventDefault();const t=p.value.trim();if(!t&&!af)retu
 http.createServer(async(req,res)=>{
   if(req.method==='GET'&&req.url==='/'){res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});res.end(html)}
   else if(req.method==='GET'&&req.url==='/manifest.json'){res.writeHead(200,{'Content-Type':'application/json'});res.end(manifest)}
-  else if(req.method==='GET'&&req.url==='/icon.png'){res.writeHead(200,{'Content-Type':'image/png'});res.end(fs.readFileSync('/data/data/com.termux/files/home/my-ai-app/icon.png'))}
-  else if(req.method==='GET'&&req.url==='/sw.js'){res.writeHead(200,{'Content-Type':'application/javascript'});res.end(fs.readFileSync('/data/data/com.termux/files/home/my-ai-app/sw.js'))}
+  else if(req.method==='GET'&&req.url==='/icon.png'){res.writeHead(200,{'Content-Type':'image/png'});res.end(fs.readFileSync('icon.png'))}
+  else if(req.method==='GET'&&req.url==='/sw.js'){res.writeHead(200,{'Content-Type':'application/javascript'});res.end(fs.readFileSync('sw.js'))}
   else if(req.method==='POST'&&req.url==='/clear'){chatHistory=[];res.writeHead(200);res.end('ok')}
   else if(req.method==='POST'&&req.url==='/ask'){
     let b='';req.on('data',c=>b+=c);req.on('end',async()=>{
